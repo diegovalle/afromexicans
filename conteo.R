@@ -28,8 +28,8 @@ for(i in 1:32) {
            str_c("data/", i), mode = "wb")
   unzip(str_c("data/", i), exdir = "data")
 }
-afros <- data.frame()
 
+afros <- data.frame()
 for(i in 1:32) {
   print(i)
   df <- read_csv(str_c("data/TR_PERSONA",  str_pad(i, 2, "left", "0"), ".CSV"))
@@ -50,13 +50,18 @@ for(i in 1:32) {
     mutate(per = afro/total * 100) %>%
     arrange(desc(per))
   afros <- rbind(afros, afros_state)
+  rm(df)
+  gc()
 }
 afros$id <- str_c(afros$ENT, afros$MUN)
 afros[is.na(afros$per), "per"] <- 0
 afros[is.na(afros$per), "afro"] <- 0
 sum(afros$afro, na.rm = TRUE)
 
+write_csv(afros, "data/afros.csv")
+
 muns = readOGR("map/mgm2013v6_2.shp", "mgm2013v6_2")
+#
 bb <- bbox(as(extent(muns) , "SpatialPolygons" ) )
 muns@data$id = muns@data$concat
 muns@data <- plyr::join(muns@data, afros, by = "id")
@@ -84,9 +89,9 @@ gg <- ggplot()+
   geom_map(data=muns_df, map=muns_df,
                     aes(map_id=id, x=long, y=lat, group=group, fill=log1p(per)),
                     color="white", size=0.05)+  
-  scale_fill_viridis(" log(1+x) percentage")+
+  scale_fill_viridis("log(1+x) percentage")+
   coord_map() +
-  labs(x="", y="", title="Afro-Mexicans")+
+  labs(x="", y="", title="Percentage Afro-Mexican according to the 2015 Encuesta Intercensal")+
   coord_map("albers", lat0 = bb[ 2 , 1 ] , lat1 = bb[ 2 , 2 ] ) +
   theme_bw() + 
   theme(legend.key = element_rect( fill = NA)) +
@@ -100,7 +105,7 @@ leaflet(muns) %>% addTiles() %>%
   addPolygons(
     stroke = FALSE, fillOpacity = 0.5, smoothFactor = 0.5,
     color = ~pal(per),
-    popup = ~htmlEscape(str_c(NOM_MUN, "\nPercent: ", round(per, 1)))
+    popup = ~htmlEscape(str_c(NOM_MUN, "= Percent: ", round(per, 1)))
   ) %>%
   addLegend("bottomright", pal = pal, values = ~per,
             title = "Percent Afro-Mexican",
