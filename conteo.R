@@ -88,7 +88,7 @@ theme_bare <-theme(axis.line=element_blank(),
 gg <- ggplot()+ 
   geom_map(data=muns_df, map=muns_df,
                     aes(map_id=id, x=long, y=lat, group=group, fill=log1p(per)),
-                    color="white", size=0.05)+  
+                    color="white", size=0.04)+  
   scale_fill_viridis("log(1+x) percentage")+
   coord_map() +
   labs(x="", y="", title="Percentage of the population that identifies as Afro-Mexican\naccording to the 2015 Encuesta Intercensal")+
@@ -97,7 +97,7 @@ gg <- ggplot()+
   theme(legend.key = element_rect( fill = NA)) +
   theme_bare
 gg
-ggsave("graphs/afros.png", plot = gg, dpi = 100, width = 9.6, height = 8)
+ggsave("graphs/afros.png", plot = gg, dpi = 100, width = 9.6, height = 7)
 
 #muns$logper <- log1p(muns$per)
 #muns$text <- str_c(muns$NOM_ENT, ", ", muns$NOM_MUN, " - ", muns$per)
@@ -106,7 +106,7 @@ leaflet(muns) %>% addTiles() %>%
   addPolygons(
     stroke = FALSE, fillOpacity = 0.5, smoothFactor = 0.5,
     color = ~pal(per),
-    popup = ~htmlEscape(str_c(NOM_MUN, "= Percent: ", round(per, 1)))
+    popup = ~htmlEscape(str_c(NOM_MUN, " - Percent: ", round(per, 1)))
   ) %>%
   addLegend("bottomright", pal = pal, values = ~per,
             title = "Percent Afro-Mexican",
