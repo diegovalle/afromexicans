@@ -91,12 +91,13 @@ gg <- ggplot()+
                     color="white", size=0.05)+  
   scale_fill_viridis("log(1+x) percentage")+
   coord_map() +
-  labs(x="", y="", title="Percentage Afro-Mexican according to the 2015 Encuesta Intercensal")+
+  labs(x="", y="", title="Percentage of the population that identifies as Afro-Mexican\naccording to the 2015 Encuesta Intercensal")+
   coord_map("albers", lat0 = bb[ 2 , 1 ] , lat1 = bb[ 2 , 2 ] ) +
   theme_bw() + 
   theme(legend.key = element_rect( fill = NA)) +
   theme_bare
 gg
+ggsave("graphs/afros.png", plot = gg, dpi = 100, width = 9.6, height = 8)
 
 #muns$logper <- log1p(muns$per)
 #muns$text <- str_c(muns$NOM_ENT, ", ", muns$NOM_MUN, " - ", muns$per)
