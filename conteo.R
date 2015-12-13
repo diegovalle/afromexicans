@@ -9,6 +9,8 @@ library(viridis)
 library("raster")
 library(leaflet)
 library(htmltools)
+library(htmlTable)
+options(stringsAsFactors=FALSE)
 
 #http://www3.inegi.org.mx/sistemas/microdatos/Descargas.aspx?sr=microdatos_archivos/encuesta_intercensal/2015/eic2015_27_csv.zip&ht=02
 #http://www3.inegi.org.mx/sistemas/microdatos/Descargas.aspx?sr=microdatos_archivos/encuesta_intercensal/2015/eic2015_32_csv.zip&ht=02
@@ -56,8 +58,18 @@ for(i in 1:32) {
 afros$id <- str_c(afros$ENT, afros$MUN)
 afros[is.na(afros$per), "per"] <- 0
 afros[is.na(afros$per), "afro"] <- 0
-sum(afros$afro, na.rm = TRUE)
+sum(afros$afro, na.rm = TRUE)/sum(afros$total, na.rm = TRUE)
 
+afros %>%
+  group_by(NOM_ENT) %>%
+  summarise(total = sum(total),
+            afro = sum(afro)) %>%
+  mutate(per = afro / total) %>%
+  arrange(desc(per))%>%
+  filter(NOM_ENT %in% c("Guerrero", "Veracruz de Ignacio de la Llave",
+                        ""))
+
+#afros=read.csv("data/afros.csv", fileEncoding="cp1252")
 write_csv(afros, "data/afros.csv")
 
 muns = readOGR("map/mgm2013v6_2.shp", "mgm2013v6_2")
@@ -87,11 +99,11 @@ theme_bare <-theme(axis.line=element_blank(),
 
 gg <- ggplot()+ 
   geom_map(data=muns_df, map=muns_df,
-                    aes(map_id=id, x=long, y=lat, group=group, fill=log1p(per)),
+                    aes(map_id=id, x=long, y=lat, group=group, fill=per),
                     color="white", size=0.04)+  
-  scale_fill_viridis("log(1+x) percentage")+
+  scale_fill_viridis("percentage", trans = "log1p")+
   coord_map() +
-  labs(x="", y="", title="Percentage of the population that identifies as Afro-Mexican\naccording to the 2015 Encuesta Intercensal")+
+  labs(x="", y="", title="Percentage of the population that identifies as Afro-Mexican\nor partially Afro-Mexican according to the 2015 Encuesta Intercensal")+
   coord_map("albers", lat0 = bb[ 2 , 1 ] , lat1 = bb[ 2 , 2 ] ) +
   theme_bw() + 
   theme(legend.key = element_rect( fill = NA)) +
@@ -99,16 +111,41 @@ gg <- ggplot()+
 gg
 ggsave("graphs/afros.png", plot = gg, dpi = 100, width = 9.6, height = 7)
 
-#muns$logper <- log1p(muns$per)
+muns$logper <- log1p(muns$per)
 #muns$text <- str_c(muns$NOM_ENT, ", ", muns$NOM_MUN, " - ", muns$per)
-pal <- colorNumeric(viridis(15), muns$per)
+pal <- colorNumeric(viridis(15), muns$logper)
 leaflet(muns) %>% addTiles() %>%
   addPolygons(
     stroke = FALSE, fillOpacity = 0.5, smoothFactor = 0.5,
-    color = ~pal(per),
+    color = ~pal(logper),
     popup = ~htmlEscape(str_c(NOM_MUN, " - Percent: ", round(per, 1)))
   ) %>%
-  addLegend("bottomright", pal = pal, values = ~per,
-            title = "Percent Afro-Mexican",
+  addLegend("bottomright", pal = pal, values = ~logper,
+            labels = as.character(expm1(seq(0,4,.5))),
+            title = "Percent Afro-Mexican<br/>(Totally or Partially)",
+            labFormat = labelFormat(suffix = "%",
+                                    transform = function(x) round(expm1(x))),
             opacity = 1
   )
+
+ggplot(afros, aes(per)) +
+  geom_density()
+
+
+top10 <- afros[order(-afros$per),]
+top10$per  <- str_c(round(top10$per, 1), "%")
+htmlTable(top10[1:10, c("NOM_ENT", "NOM_MUN", "total", "afro", "per")],
+          align="llcc|c",
+          rnames=FALSE,
+          col.rgroup = c("none", "#F7F7F7"),
+          header = c("State", "Municipio", "Total Population", 
+                     "Afro-Mexicans\n(totally or partially)", "Percent"))
+
+top10 <- afros[order(-afros$afro),]
+top10$per  <- str_c(round(top10$per, 1), "%")
+htmlTable(top10[1:10, c("NOM_ENT", "NOM_MUN", "total", "afro", "per")],
+          align="llc|cc",
+          rnames=FALSE,
+          col.rgroup = c("none", "#F7F7F7"),
+          header = c("State", "Municipio", "Total Population", 
+                     "Afro-Mexicans\n(totally or partially)", "Percent"))
