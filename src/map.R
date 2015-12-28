@@ -1,13 +1,16 @@
 
 muns = readOGR("map/mgm2013v6_2.shp", "mgm2013v6_2")
+
+states <- readOGR("map/mge2013v6_2.shp", "mge2013v6_2")
+states_df <- fortify(states)
 #
 bb <- bbox(as(extent(muns) , "SpatialPolygons" ) )
-muns@data$id = muns@data$concat
+muns@data$id = as.numeric(muns@data$concat)
 muns@data <- plyr::join(muns@data, afros, by = "id")
 
 muns_df <- fortify(muns,region = "id")
 
-muns_df <- merge(muns_df, afros, by="id")
+muns_df <- plyr::join(muns_df, afros, by="id")
 
 ## Theme for maps
 
@@ -24,33 +27,37 @@ theme_bare <-theme(axis.line=element_blank(),
                    panel.grid.minor=element_blank(),
                    plot.background=element_blank())
 
-gg <- ggplot()+ 
+gg_a <- ggplot()+ 
   geom_map(data=muns_df, map=muns_df,
            aes(map_id=id, x=long, y=lat, group=group, fill=per),
-           color="white", size=0.04)+  
-  scale_fill_viridis("percentage", trans = "log1p")+
+           color="white", size=0.04) + 
+  geom_polygon(data = states_df,
+               aes(long, lat, group = group),
+               color = "#aaaaaa", fill = NA, size = 0.3) +
+  scale_fill_viridis("percentage", trans = "sqrt", labels = percent)+
   coord_map() +
-  labs(x="", y="", title="Percentage of the population that identifies as Afro-Mexican\nor partially Afro-Mexican according to the 2015 Encuesta Intercensal")+
+  labs(x="", y="", title="Percentage of the population that self-identifies as Afro-Mexican\nor partially Afro-Mexican according to the 2015 encuesta intercensal")+
   coord_map("albers", lat0 = bb[ 2 , 1 ] , lat1 = bb[ 2 , 2 ] ) +
   theme_bw() + 
   theme(legend.key = element_rect( fill = NA)) +
   theme_bare
-gg
-ggsave("graphs/afros.png", plot = gg, dpi = 100, width = 9.6, height = 7)
+ggsave("graphs/afromexicanos.png", plot = gg_a, dpi = 100, width = 9.6, height = 7)
 
-gg <- ggplot()+ 
+gg_i <- ggplot()+ 
   geom_map(data=muns_df, map=muns_df,
            aes(map_id=id, x=long, y=lat, group=group, fill=per_ind),
-           color="white", size=0.04)+  
-  scale_fill_viridis("percentage", trans = "log1p", option="magma")+
+           color="white", size=0.04) + 
+  geom_polygon(data = states_df,
+               aes(long, lat, group = group),
+               color = "#aaaaaa", fill = NA, size = 0.3) +  
+  scale_fill_viridis("percentage",  option="magma", labels = percent)+
   coord_map() +
-  labs(x="", y="", title="Percentage of the population that identifies as indigenous\naccording to the 2015 Encuesta Intercensal")+
+  labs(x="", y="", title="Percentage of the population that self-identifies as indigenous\naccording to the 2015 encuesta intercensal")+
   coord_map("albers", lat0 = bb[ 2 , 1 ] , lat1 = bb[ 2 , 2 ] ) +
   theme_bw() + 
   theme(legend.key = element_rect( fill = NA)) +
   theme_bare
-gg
-ggsave("graphs/indigenous.png", plot = gg, dpi = 100, width = 9.6, height = 7)
+ggsave("graphs/indigenous.png", plot = gg_i, dpi = 100, width = 9.6, height = 7)
 
 
 
