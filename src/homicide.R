@@ -23,10 +23,10 @@ corr_chart <- function(years, years_str, filename) {
     geom_smooth(method = lm) +
     scale_color_discrete("State") +
     scale_x_continuous(labels = percent) +
-    xlab("percentage who identifies as Afro-Mexican or partially Afro-Mexican") +
+    xlab("percentage who self-identifies as Afro-Mexican or partially Afro-Mexican") +
     ylab(str_c("homicide rate ", years_str)) +
-    ggtitle("Correlations between homicide rates and percentage black\nat the municipio level, by state")
+    ggtitle("Correlations between homicide rates and percentage Afro-Mexican\nat the municipio level, by state")
   ggsave(filename, plot = gg, dpi = 100, width = 9, height = 5)
 }
-corr_chart(2008:2013, "2008-2013", "graphs/homicides_drugwar.svg")
+corr_chart(2008:2014, "2008-2014", "graphs/homicides_drugwar.svg")
 corr_chart(2004:2007, "2004-2007", "graphs/homicides_before.svg")
