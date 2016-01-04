@@ -24,6 +24,7 @@ corr_chart <- function(years, years_str, filename) {
     scale_x_continuous(labels = percent) +
     xlab("percentage who self-identifies as Afro-Mexican or partially Afro-Mexican") +
     ylab(str_c("homicide rate ", years_str)) +
+    theme_bw() +
     ggtitle("Correlations between homicide rates and percentage Afro-Mexican\nat the municipio level, by state")
   ggsave(filename, plot = gg, dpi = 100, width = 9, height = 5)
   gg
