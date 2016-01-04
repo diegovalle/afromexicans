@@ -109,8 +109,8 @@ ggplot(filter(read, ALFABET == 5), aes(reorder(category, total), total)) +
   xlab("ethnic group") +
   ylab("population") +
   scale_y_continuous(labels = comma) +
-  theme(axis.text.x = element_text(angle = 40, hjust = 1))+
   theme_bw() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))+
   ggtitle("Total population in Guerrero, Oaxaca and Veracruz,\nby Afro-Mexican and Indigenous self-identification\n(excludes people who didn't know or did not answer)")
 ggsave("graphs/total_race.png",  dpi = 100, width = 9.6, height = 7)
 

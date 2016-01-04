@@ -13,6 +13,7 @@ states <- gather(states[,c("NOM_ENT", "per_afro", "per_part_afro")],
                 type, percentage, per_afro:per_part_afro)
 
 ggplot(states, aes(reorder(NOM_ENT, percentage), percentage, fill = type)) +
+  theme_bw() +
   geom_bar(stat = "identity") +
   coord_flip() +
   scale_y_continuous(labels = percent) +
